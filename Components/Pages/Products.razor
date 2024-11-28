@@ -1,0 +1,107 @@
+﻿@page "/products"
+
+@using BlazorBootstrap
+@using EShopWeb.Data.Models
+@using EShopWeb.Services.ProductService
+
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<h1>Our Products</h1>
+
+@if (categories == null)
+{
+    <p>Loading categories...</p>
+}
+else
+{
+    <div class="category-filter">
+        @foreach (var category in categories)
+        {
+            <button @onclick="(() => LoadProductsByCategory(category.CategoryID))"
+            class="category-button @(selectedCategoryId == category.CategoryID ? "selected" : "")">
+                @category.CategoryName
+            </button>
+        }
+    </div>
+}
+
+@if (products == null)
+{
+    <p>Loading products...</p>
+}
+else if (!products.Any())
+{
+    <p>No products found for the selected category.</p>
+}
+else
+{
+    <div class="product-list">
+        @foreach (var product in products)
+        {
+            <div class="product-item">
+                <ProductItem Product="product" />
+                <button @onclick="(() => ShowDeleteConfirmation(product.ProductID))" class="delete-button">Delete</button>
+            </div>
+        }
+    </div>
+}
+
+<Modal @ref="modal" Title="Confirm Deletion">
+    <BodyTemplate>
+        <p>Are you sure you want to delete this product?</p>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Primary" @onclick="ConfirmDelete" class="confirm-button">Yes</Button>
+        <Button Color="ButtonColor.Secondary" @onclick="CancelDelete" class="cancel-button">No</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal modal = default!;
+    private List<Product>? products;
+    private List<Category>? categories;
+    private int selectedCategoryId;
+    private int productIdToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await ProductService.GetCategoriesAsync();
+
+        if (categories != null && categories.Any())
+        {
+            selectedCategoryId = categories.First().CategoryID;
+            await LoadProductsByCategory(selectedCategoryId);
+        }
+    }
+
+    private async Task LoadProductsByCategory(int categoryId)
+    {
+        selectedCategoryId = categoryId;
+        products = await ProductService.GetProductsByCategoryAsync(categoryId);
+    }
+
+    private async void ShowDeleteConfirmation(int productId)
+    {
+        productIdToDelete = productId;
+        await modal.ShowAsync();
+    }
+
+    private async Task ConfirmDelete()
+    {
+        var result = await ProductService.DeleteProductAsync(productIdToDelete);
+        if (result)
+        {
+            await LoadProductsByCategory(selectedCategoryId);
+        }
+        await modal.HideAsync();
+    }
+
+    private async void CancelDelete()
+    {
+        productIdToDelete = 0;
+        await modal.HideAsync();
+    }
+}

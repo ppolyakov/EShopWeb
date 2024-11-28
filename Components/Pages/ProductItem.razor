@@ -1,0 +1,22 @@
+﻿@using EShopWeb.Data.Models
+@rendermode InteractiveServer
+
+<div class="product-item">
+    @if (Product.ImageData != null)
+    {
+        <img src="data:image/jpeg;base64,@Convert.ToBase64String(Product.ImageData)" alt="@Product.Name" class="product-image" />
+    }
+    else
+    {
+        <p>No image available</p>
+    }
+    <h2>@Product.Name</h2>
+    <p>@Product.Description</p>
+    <p>Price: @Product.Price.ToString("C")</p>
+    <p>Category: @Product.Category.CategoryName</p>
+</div>
+
+@code {
+    [Parameter]
+    public Product Product { get; set; } = new Product();
+}

@@ -1,0 +1,120 @@
+﻿@page "/add-product"
+@page "/edit-product/{productId:int}"
+
+@using EShopWeb.Data.Models
+@using EShopWeb.Services.ProductService
+
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<h3>@(isEditing ? "Edit Product" : "Add Product")</h3>
+
+<EditForm Model="@product" OnValidSubmit="HandleSubmit" Formname="AddEditProductForm">
+    <div>
+        <label>Name:</label>
+        <InputText @bind-Value="product.Name" />
+    </div>
+    <div>
+        <label>Description:</label>
+        <InputText @bind-Value="product.Description" />
+    </div>
+    <div>
+        <label>Price:</label>
+        <InputNumber @bind-Value="product.Price" />
+    </div>
+    <div>
+        <label>Category:</label>
+        <InputSelect @bind-Value="product.CategoryID">
+            <option value="">Select a category</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.CategoryID">@category.CategoryName</option>
+            }
+        </InputSelect>
+    </div>
+    <div>
+        <label>
+            Image:
+            <InputFile OnChange="HandleFileUpload" />
+        </label>
+    </div>
+    <button type="submit">@((isEditing ? "Update Product" : "Add Product"))</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? productId { get; set; }
+
+    private Product product = new();
+    private byte[]? imageData;
+    private List<Category> categories = new();
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await ProductService.GetCategoriesAsync();
+
+        if (productId.HasValue)
+        {
+            isEditing = true;
+            var existingProduct = await ProductService.GetProductByIdAsync(productId.Value);
+
+            if (existingProduct != null)
+            {
+                product = existingProduct;
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/products");
+            }
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+
+            if (file != null)
+            {
+                using var stream = new MemoryStream();
+                await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(stream);
+                imageData = stream.ToArray();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки файла: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (imageData != null)
+        {
+            product.ImageData = imageData;
+        }
+
+        if (isEditing)
+        {
+            var result = await ProductService.UpdateProductAsync(product);
+
+            if (result)
+            {
+                NavigationManager.NavigateTo("/products");
+            }
+        }
+        else if (imageData is not null)
+        {
+            var result = await ProductService.AddProductAsync(product, imageData);
+
+            if (result)
+            {
+                NavigationManager.NavigateTo("/products");
+            }
+        }
+    }
+}
