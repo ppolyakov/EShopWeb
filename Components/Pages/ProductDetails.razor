@@ -1,0 +1,87 @@
+﻿@page "/product-details/{productId:int}"
+
+@using EShopWeb.Data.Models
+@using EShopWeb.Services.CartService
+@using EShopWeb.Services.ProductService
+@rendermode InteractiveServer
+
+@inject IProductService ProductService
+@inject ICartService CartService
+@inject NavigationManager NavigationManager
+
+<Notification IsVisible="isNotificationVisible" Message="@notificationMessage" OnClose="ClearNotification" />
+
+<div class="container my-4">
+    <div class="mb-4">
+        <button class="btn btn-secondary" @onclick="NavigateBack">Back</button>
+    </div>
+
+    @if (product == null)
+    {
+        <div class="alert alert-info">Loading product details...</div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12 col-md-5">
+                @if (product.ImageData != null && product.ImageData.Length > 0)
+                {
+                    <img src="data:image/png;base64,@Convert.ToBase64String(product.ImageData)" class="img-fluid rounded shadow" alt="@product.Name">
+                }
+            </div>
+
+            <div class="col-12 col-md-7">
+                <h1 class="display-5">@product.Name</h1>
+                <p class="text-muted">@product.Category?.CategoryName</p>
+                <p>@product.Description</p>
+                <p><strong>Price:</strong> @product.Price.ToString("C", new System.Globalization.CultureInfo("cs-CZ"))</p>
+
+                <div class="d-flex align-items-center mt-4">
+                    <input type="number" class="form-control w-25 me-2" min="1" step="1" @bind="quantity" />
+                    <button class="btn btn-primary" @onclick="AddToCart">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    
+</div>
+
+@code {
+    [Parameter] public int productId { get; set; }
+    private Product? product;
+    private string notificationMessage = string.Empty;
+    private bool isNotificationVisible = false;
+    private int quantity = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductByIdAsync(productId);
+
+        if (product == null)
+        {
+            NavigationManager.NavigateTo("/products");
+        }
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/products");
+    }
+
+    private async Task AddToCart()
+    {
+        if (product != null && quantity > 0)
+        {
+            await CartService.AddToCartAsync(product, quantity);
+            notificationMessage = $"{quantity} x {product.Name} has been added to your cart.";
+            isNotificationVisible = true;
+        }
+    }
+
+    private void ClearNotification()
+    {
+        isNotificationVisible = false;
+        notificationMessage = string.Empty;
+    }
+}

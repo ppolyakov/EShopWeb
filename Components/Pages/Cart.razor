@@ -1,5 +1,6 @@
 ﻿@page "/cart"
 
+@using BlazorBootstrap
 @using EShopWeb.Data.Models
 @using EShopWeb.Services.CartService
 @rendermode InteractiveServer
@@ -7,51 +8,102 @@
 @inject ICartService CartService
 @inject NavigationManager NavigationManager
 
-<h1>Your Cart</h1>
+<div class="container my-4">
+    <h1 class="text-center mb-4">Your Cart</h1>
 
-@if (cartItems == null || !cartItems.Any())
-{
-    <p>Your cart is empty.</p>
-}
-else
-{
-    <div class="cart-items">
-        @foreach (var item in cartItems)
-        {
-            <div class="cart-item">
-                <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.Product.ImageData)" alt="@item.Product.Name" class="cart-item-image" />
-                <div>
-                    <h2>@item.Product.Name</h2>
-                    <p>Price: @item.Product.Price.ToString("C")</p>
-                    <label>
-                        Quantity:
-                        <InputNumber @bind-Value="item.Quantity"/>
-                    </label>
-                    <button @onclick="(() => RemoveFromCart(item.Product.ProductID))">Remove</button>
+    @if (cartItems == null || !cartItems.Any())
+    {
+        <div class="alert alert-info text-center">Your cart is empty.</div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var item in cartItems)
+            {
+                <div class="list-group-item d-flex align-items-center">
+                    <img src="data:image/png;base64,@Convert.ToBase64String(item.Product.ImageData)"
+                         class="img-thumbnail me-3" alt="@item.Product.Name"
+                         style="width: 80px; height: 80px; object-fit: cover;">
+
+                    <div class="flex-grow-1">
+                        <h5 class="mb-1">@item.Product.Name</h5>
+                        <p class="mb-1"><strong>Price:</strong> @item.Product.Price.ToString("C", new System.Globalization.CultureInfo("cs-CZ"))</p>
+                        <div class="d-flex align-items-center">
+                            <label class="me-2">Quantity:</label>
+                            <div class="input-group w-25">
+                                <Button Color="ButtonColor.Secondary" @onclick="(() => ChangeQuantity(item, -1))">-</Button>
+                                <InputNumber class="form-control text-center"
+                                             TValue="int"
+                                             Value="@item.Quantity"
+                                             ValueChanged="@(q => UpdateQuantity(q, item))"
+                                             ValueExpression="() => item.Quantity" />
+                                <Button Color="ButtonColor.Secondary" @onclick="(() => ChangeQuantity(item, 1))">+</Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Button Color="ButtonColor.Danger" @onclick="(() => RemoveFromCart(item.Product.ProductID))">
+                        Remove
+                    </Button>
                 </div>
-            </div>
-        }
-    </div>
-    <button @onclick="ClearCart">Clear Cart</button>
-}
+            }
+        </div>
+
+        <div class="mt-4">
+            <h4>Total Price: @totalPrice.ToString("C", new System.Globalization.CultureInfo("cs-CZ"))</h4>
+        </div>
+
+        <div class="text-end mt-2">
+            <Button Color="ButtonColor.Secondary" @onclick="ClearCart">Clear Cart</Button>
+        </div>
+    }
+</div>
 
 @code {
     private List<CartItem>? cartItems;
+    private decimal totalPrice = 0;
 
     protected override async Task OnInitializedAsync()
     {
         cartItems = await CartService.GetCartItemsAsync();
+        UpdateTotalPrice();
     }
 
     private async Task RemoveFromCart(int productId)
     {
         await CartService.RemoveFromCartAsync(productId);
         cartItems = await CartService.GetCartItemsAsync();
+        UpdateTotalPrice();
     }
 
     private async Task ClearCart()
     {
         await CartService.ClearCartAsync();
         cartItems = await CartService.GetCartItemsAsync();
+        UpdateTotalPrice();
+    }
+
+    private void UpdateTotalPrice()
+    {
+        totalPrice = cartItems?.Sum(item => item.Product.Price * item.Quantity) ?? 0;
+    }
+
+    private void UpdateQuantity(int newQuantity, CartItem item)
+    {
+        if (newQuantity > 0)
+        {
+            item.Quantity = newQuantity;
+            UpdateTotalPrice();
+        }
+    }
+
+    private void ChangeQuantity(CartItem item, int change)
+    {
+        var newQuantity = item.Quantity + change;
+        if (newQuantity > 0)
+        {
+            item.Quantity = newQuantity;
+            UpdateTotalPrice();
+        }
     }
 }
