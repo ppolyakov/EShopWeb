@@ -1,5 +1,6 @@
 using EShopWeb.Components;
 using EShopWeb.Data;
+using EShopWeb.Services.CartService;
 using EShopWeb.Services.ProductService;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddSingleton<ICartService, CartService>();
 builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();

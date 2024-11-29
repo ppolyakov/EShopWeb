@@ -17,6 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<Cart> Carts { get; set; }
+    public DbSet<CartItem> CartItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,5 +60,15 @@ public class AppDbContext : DbContext
             .HasOne(u => u.Role)
             .WithMany(r => r.Users)
             .HasForeignKey(u => u.RoleID);
+
+        modelBuilder.Entity<Cart>()
+        .HasMany(c => c.CartItems)
+        .WithOne(ci => ci.Cart)
+        .HasForeignKey(ci => ci.CartID);
+
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Product)
+            .WithMany()
+            .HasForeignKey(ci => ci.ProductID);
     }
 }

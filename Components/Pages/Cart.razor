@@ -1,0 +1,57 @@
+﻿@page "/cart"
+
+@using EShopWeb.Data.Models
+@using EShopWeb.Services.CartService
+@rendermode InteractiveServer
+
+@inject ICartService CartService
+@inject NavigationManager NavigationManager
+
+<h1>Your Cart</h1>
+
+@if (cartItems == null || !cartItems.Any())
+{
+    <p>Your cart is empty.</p>
+}
+else
+{
+    <div class="cart-items">
+        @foreach (var item in cartItems)
+        {
+            <div class="cart-item">
+                <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.Product.ImageData)" alt="@item.Product.Name" class="cart-item-image" />
+                <div>
+                    <h2>@item.Product.Name</h2>
+                    <p>Price: @item.Product.Price.ToString("C")</p>
+                    <label>
+                        Quantity:
+                        <InputNumber @bind-Value="item.Quantity"/>
+                    </label>
+                    <button @onclick="(() => RemoveFromCart(item.Product.ProductID))">Remove</button>
+                </div>
+            </div>
+        }
+    </div>
+    <button @onclick="ClearCart">Clear Cart</button>
+}
+
+@code {
+    private List<CartItem>? cartItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cartItems = await CartService.GetCartItemsAsync();
+    }
+
+    private async Task RemoveFromCart(int productId)
+    {
+        await CartService.RemoveFromCartAsync(productId);
+        cartItems = await CartService.GetCartItemsAsync();
+    }
+
+    private async Task ClearCart()
+    {
+        await CartService.ClearCartAsync();
+        cartItems = await CartService.GetCartItemsAsync();
+    }
+}

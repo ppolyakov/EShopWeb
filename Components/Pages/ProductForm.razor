@@ -1,93 +1,72 @@
-﻿@page "/add-product"
-@page "/edit-product/{productId:int}"
-
+﻿@using BlazorBootstrap
 @using EShopWeb.Data.Models
 @using EShopWeb.Services.ProductService
 
-@inject IProductService ProductService
-@inject NavigationManager NavigationManager
-
-@rendermode InteractiveServer
-
-<h3>@(isEditing ? "Edit Product" : "Add Product")</h3>
-
-<EditForm Model="@product" OnValidSubmit="HandleSubmit" Formname="AddEditProductForm">
-    <div>
-        <label>Name:</label>
-        <InputText @bind-Value="product.Name" />
+<EditForm Model="@Product" OnValidSubmit="HandleSubmit" FormName="ProductForm" class="needs-validation">
+    <div class="mb-3 row">
+        <label for="productName" class="col-sm-3 col-form-label">Name:</label>
+        <div class="col-sm-9">
+            <InputText id="productName" class="form-control" @bind-Value="Product.Name" />
+        </div>
     </div>
-    <div>
-        <label>Description:</label>
-        <InputText @bind-Value="product.Description" />
+    <div class="mb-3 row">
+        <label for="productDescription" class="col-sm-3 col-form-label">Description:</label>
+        <div class="col-sm-9">
+            <InputText id="productDescription" class="form-control" @bind-Value="Product.Description" />
+        </div>
     </div>
-    <div>
-        <label>Price:</label>
-        <InputNumber @bind-Value="product.Price" />
+    <div class="mb-3 row">
+        <label for="productPrice" class="col-sm-3 col-form-label">Price:</label>
+        <div class="col-sm-9">
+            <InputNumber id="productPrice" class="form-control" @bind-Value="Product.Price" />
+        </div>
     </div>
-    <div>
-        <label>Category:</label>
-        <InputSelect @bind-Value="product.CategoryID">
-            <option value="">Select a category</option>
-            @foreach (var category in categories)
-            {
-                <option value="@category.CategoryID">@category.CategoryName</option>
-            }
-        </InputSelect>
+    <div class="mb-3 row">
+        <label for="productCategory" class="col-sm-3 col-form-label">Category:</label>
+        <div class="col-sm-9">
+            <InputSelect id="productCategory" class="form-control" @bind-Value="Product.CategoryID">
+                <option value="">Select a category</option>
+                @foreach (var category in Categories)
+                {
+                    <option value="@category.CategoryID">@category.CategoryName</option>
+                }
+            </InputSelect>
+        </div>
     </div>
-    <div>
-        <label>
-            Image:
-            <InputFile OnChange="HandleFileUpload" />
-        </label>
+    <div class="mb-3 row">
+        <label for="productImage" class="col-sm-3 col-form-label">Image:</label>
+        <div class="col-sm-9">
+            <InputFile id="productImage" class="form-control" OnChange="HandleFileUpload" />
+        </div>
     </div>
-    <button type="submit">@((isEditing ? "Update Product" : "Add Product"))</button>
+    <div class="row">
+        <div class="col-sm-12 text-end">
+            <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">@((IsEditing ? "Update Product" : "Add Product"))</Button>
+            <Button Color="ButtonColor.Secondary" @onclick="Clear">Clear</Button>
+            <Button Color="ButtonColor.Danger" @onclick="(() => Delete(Product))">Delete</Button>
+        </div>
+    </div>
 </EditForm>
 
 @code {
-    [Parameter]
-    public int? productId { get; set; }
+    [Parameter] public Product Product { get; set; } = new Product();
+    [Parameter] public EventCallback<Product> OnSave { get; set; }
+    [Parameter] public EventCallback<Product> OnClear { get; set; }
+    [Parameter] public EventCallback<Product> OnDelete { get; set; }
+    [Parameter] public List<Category> Categories { get; set; } = new();
+    [Parameter] public bool IsEditing { get; set; }
 
-    private Product product = new();
     private byte[]? imageData;
-    private List<Category> categories = new();
-    private bool isEditing = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        categories = await ProductService.GetCategoriesAsync();
-
-        if (productId.HasValue)
-        {
-            isEditing = true;
-            var existingProduct = await ProductService.GetProductByIdAsync(productId.Value);
-
-            if (existingProduct != null)
-            {
-                product = existingProduct;
-            }
-            else
-            {
-                NavigationManager.NavigateTo("/products");
-            }
-        }
-    }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
-        try
-        {
-            var file = e.File;
+        var file = e.File;
 
-            if (file != null)
-            {
-                using var stream = new MemoryStream();
-                await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(stream);
-                imageData = stream.ToArray();
-            }
-        }
-        catch (Exception ex)
+        if (file != null)
         {
-            Console.WriteLine($"Ошибка загрузки файла: {ex.Message}");
+            using var stream = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(stream);
+            imageData = stream.ToArray();
         }
     }
 
@@ -95,26 +74,18 @@
     {
         if (imageData != null)
         {
-            product.ImageData = imageData;
+            Product.ImageData = imageData;
         }
 
-        if (isEditing)
-        {
-            var result = await ProductService.UpdateProductAsync(product);
-
-            if (result)
-            {
-                NavigationManager.NavigateTo("/products");
-            }
-        }
-        else if (imageData is not null)
-        {
-            var result = await ProductService.AddProductAsync(product, imageData);
-
-            if (result)
-            {
-                NavigationManager.NavigateTo("/products");
-            }
-        }
+        await OnSave.InvokeAsync(Product);
     }
+
+    private async Task Clear(){
+        await OnClear.InvokeAsync(Product);
+    }
+    
+    private async Task Delete(Product product){
+        await OnDelete.InvokeAsync(product);
+    }
+
 }

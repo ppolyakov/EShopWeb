@@ -1,0 +1,217 @@
+﻿@page "/admin-panel"
+
+@using EShopWeb.Data.Models
+@using EShopWeb.Services.ProductService
+@using BlazorBootstrap
+@rendermode InteractiveServer
+
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+
+<h1 class="text-center mb-4">Admin Panel</h1>
+
+<Notification Message="@notificationMessage" IsVisible="@isNotificationVisible" OnClose="ClearNotification" />
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="border rounded p-4 shadow-sm">
+                <h2>Categories</h2>
+
+                <div class="mb-3">
+                    <label for="categorySelect" class="form-label">Select Category:</label>
+                    <select id="categorySelect" class="form-control" @onchange="SelectCategory">
+                        <option value="">Add New Category</option>
+                        @foreach (var category in Categories)
+                        {
+                            <option value="@category.CategoryID">@category.CategoryName</option>
+                        }
+                    </select>
+                </div>
+
+                <CategoryForm Category="@selectedCategory" 
+                    IsEditing="@isEditingCategory"
+                    OnSave="SaveCategory"
+                    OnClear="ClearFormCategory"
+                    OnDelete="DeleteCategory"/>
+
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="border rounded p-4 shadow-sm">
+                <h2>Products</h2>
+
+                <div class="mb-3">
+                    <label for="filterCategory" class="form-label">Filter by Category:</label>
+                    <select id="filterCategory" class="form-control" @onchange="FilterByCategory">
+                        <option value="">All Categories</option>
+                        @foreach (var category in Categories)
+                        {
+                            <option value="@category.CategoryID">@category.CategoryName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="productSelect" class="form-label">Select Product:</label>
+                    <select id="productSelect" class="form-control" @onchange="SelectProduct">
+                        <option value="">Add New Product</option>
+                        @foreach (var product in FilteredProducts)
+                        {
+                            <option value="@product.ProductID">@product.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <ProductForm Product="@selectedProduct" 
+                    Categories="@Categories" 
+                    IsEditing="@isEditingProduct" 
+                    OnSave="SaveProduct"
+                    OnClear="ClearFormProduct"
+                    OnDelete="DeleteProduct"/>
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Product> Products = new();
+    private List<Category> Categories = new();
+    private List<Product> FilteredProducts = new();
+
+    private Product selectedProduct = new();
+    private Category selectedCategory = new();
+
+    private bool isEditingProduct = false;
+    private bool isEditingCategory = false;
+
+    private string notificationMessage = string.Empty;
+    private bool isNotificationVisible = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await ProductService.GetCategoriesAsync();
+        Products = await ProductService.GetAllProductsAsync();
+        FilteredProducts = Products;
+    }
+
+    private void ClearFormCategory()
+    {
+        selectedCategory = new Category();
+        isEditingCategory = false;
+    }
+
+    private async Task SaveCategory(Category category)
+    {
+        if (!string.IsNullOrWhiteSpace(category.CategoryName))
+        {
+            if (isEditingCategory)
+            {
+                await ProductService.UpdateCategoryAsync(category);
+                ShowNotification("Category updated successfully.");
+            }
+            else
+            {
+                await ProductService.AddCategoryAsync(category);
+                ShowNotification("Category added successfully.");
+            }
+
+            Categories = await ProductService.GetCategoriesAsync();
+            ClearFormCategory();
+        }
+    }
+
+    private void SelectCategory(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var categoryId))
+        {
+            selectedCategory = Categories.FirstOrDefault(c => c.CategoryID == categoryId) ?? new Category();
+            isEditingCategory = true;
+        }
+        else
+        {
+            ClearFormCategory();
+        }
+    }
+
+    private void ClearFormProduct()
+    {
+        selectedProduct = new Product();
+        isEditingProduct = false;
+    }
+
+    private async Task SaveProduct(Product product)
+    {
+        if (isEditingProduct)
+        {
+            await ProductService.UpdateProductAsync(product);
+            ShowNotification("Product updated successfully.");
+        }
+        else
+        {
+            await ProductService.AddProductAsync(product, product.ImageData!);
+            ShowNotification("Product added successfully.");
+        }
+
+        Products = await ProductService.GetAllProductsAsync();
+        FilteredProducts = Products;
+        ClearFormProduct();
+    }
+
+    private void SelectProduct(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var productId))
+        {
+            selectedProduct = Products.FirstOrDefault(p => p.ProductID == productId) ?? new Product();
+            isEditingProduct = true;
+        }
+        else
+        {
+            ClearFormProduct();
+        }
+    }
+
+    private async Task DeleteCategory(Category category)
+    {
+        await ProductService.DeleteCategoryAsync(category);
+        Categories = await ProductService.GetCategoriesAsync();
+        ClearFormCategory();
+        ShowNotification("Category deleted successfully.");
+    }
+
+    private async Task DeleteProduct(Product product)
+    {
+        await ProductService.DeleteProductAsync(product);
+        Products = await ProductService.GetAllProductsAsync();
+        FilteredProducts = Products;
+        ClearFormProduct();
+        ShowNotification("Product deleted successfully.");
+    }
+
+    private void FilterByCategory(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var categoryId))
+        {
+            FilteredProducts = Products.Where(p => p.CategoryID == categoryId).ToList();
+        }
+        else
+        {
+            FilteredProducts = Products;
+        }
+    }
+
+    private void ShowNotification(string message)
+    {
+        notificationMessage = message;
+        isNotificationVisible = true;
+    }
+
+    private void ClearNotification()
+    {
+        isNotificationVisible = false;
+        notificationMessage = string.Empty;
+    }
+}

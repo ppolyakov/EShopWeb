@@ -95,3 +95,65 @@ h1:focus {
         font-weight: bold;
     }
 
+.notification {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #4caf50;
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+    .notification p {
+        margin: 0;
+    }
+
+.row.mb-3 {
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+    .row.mb-3 label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+        font-size: 14px;
+        color: #333;
+    }
+
+.form-control {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 8px 10px;
+    font-size: 14px;
+    color: #555;
+}
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+.col-md-6 {
+    padding: 10px;
+}
+
+button {
+    margin-top: 10px;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+    button:hover {
+        background-color: #0056b3;
+    }

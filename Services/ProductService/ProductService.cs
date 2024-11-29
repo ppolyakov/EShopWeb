@@ -12,7 +12,7 @@ public class ProductService : IProductService
         _context = context;
     }
 
-    public async Task<List<Product>> GetProductsAsync()
+    public async Task<List<Product>> GetAllProductsAsync()
     {
         return await _context.Products.Include(p => p.Category).ToListAsync();
     }
@@ -22,71 +22,36 @@ public class ProductService : IProductService
         return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.ProductID == productId);
     }
 
+    public async Task<List<Product>> GetProductsByCategoryAsync(int categoryId)
+    {
+        return await _context.Products
+            .Include(p => p.Category)
+            .Where(p => p.CategoryID == categoryId)
+            .ToListAsync();
+    }
+
     public async Task<bool> AddProductAsync(Product product, byte[] imageData)
     {
-        try
-        {
-            product.ImageData = imageData;
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-
-        return true;
+        product.ImageData = imageData;
+        _context.Products.Add(product);
+        return await _context.SaveChangesAsync() > 0;
     }
 
     public async Task<bool> UpdateProductAsync(Product product)
     {
-        try
-        {
-            var existingProduct = await _context.Products
-                .FirstOrDefaultAsync(p => p.ProductID == product.ProductID);
-
-            if (existingProduct != null)
-            {
-                existingProduct.Name = product.Name;
-                existingProduct.Description = product.Description;
-                existingProduct.Price = product.Price;
-                existingProduct.CategoryID = product.CategoryID;
-
-                if (product.ImageData != null)
-                {
-                    existingProduct.ImageData = product.ImageData;
-                }
-
-                _context.Products.Update(existingProduct);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
+        _context.Products.Update(product);
+        return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> DeleteProductAsync(int productId)
+    public async Task<bool> DeleteProductAsync(Product product)
     {
-        try
+        var productExisting = await _context.Products.FindAsync(product.ProductID);
+        if (productExisting != null)
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.ProductID == productId);
-            if (product != null)
-            {
-                _context.Products.Remove(product);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            _context.Products.Remove(productExisting);
+            return await _context.SaveChangesAsync() > 0;
         }
-        catch
-        {
-            return false;
-        }
+        return false;
     }
 
     public async Task<List<Category>> GetCategoriesAsync()
@@ -94,11 +59,26 @@ public class ProductService : IProductService
         return await _context.Categories.ToListAsync();
     }
 
-    public async Task<List<Product>> GetProductsByCategoryAsync(int categoryId)
+    public async Task<bool> AddCategoryAsync(Category category)
     {
-        return await _context.Products
-            .Where(p => p.CategoryID == categoryId)
-            .Include(p => p.Category)
-            .ToListAsync();
+        _context.Categories.Add(category);
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> UpdateCategoryAsync(Category category)
+    {
+        _context.Categories.Update(category);
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> DeleteCategoryAsync(Category category)
+    {
+        var categoryExisting = await _context.Categories.FindAsync(category.CategoryID);
+        if (categoryExisting != null)
+        {
+            _context.Categories.Remove(categoryExisting);
+            return await _context.SaveChangesAsync() > 0;
+        }
+        return false;
     }
 }

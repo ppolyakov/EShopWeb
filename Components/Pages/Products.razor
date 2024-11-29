@@ -43,7 +43,7 @@ else
         {
             <div class="product-item">
                 <ProductItem Product="product" />
-                <button @onclick="(() => ShowDeleteConfirmation(product.ProductID))" class="delete-button">Delete</button>
+                <button @onclick="(() => ShowDeleteConfirmation(product))" class="delete-button">Delete</button>
             </div>
         }
     </div>
@@ -64,7 +64,7 @@ else
     private List<Product>? products;
     private List<Category>? categories;
     private int selectedCategoryId;
-    private int productIdToDelete;
+    private Product? productToDelete;
 
     protected override async Task OnInitializedAsync()
     {
@@ -83,15 +83,17 @@ else
         products = await ProductService.GetProductsByCategoryAsync(categoryId);
     }
 
-    private async void ShowDeleteConfirmation(int productId)
+    private async void ShowDeleteConfirmation(Product product)
     {
-        productIdToDelete = productId;
+        productToDelete = product;
         await modal.ShowAsync();
     }
 
     private async Task ConfirmDelete()
     {
-        var result = await ProductService.DeleteProductAsync(productIdToDelete);
+        if (productToDelete == null) return;
+
+        var result = await ProductService.DeleteProductAsync(productToDelete);
         if (result)
         {
             await LoadProductsByCategory(selectedCategoryId);
@@ -101,7 +103,7 @@ else
 
     private async void CancelDelete()
     {
-        productIdToDelete = 0;
+        productToDelete = null;
         await modal.HideAsync();
     }
 }
