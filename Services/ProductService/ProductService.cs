@@ -39,8 +39,36 @@ public class ProductService : IProductService
 
     public async Task<bool> UpdateProductAsync(Product product)
     {
-        _context.Products.Update(product);
-        return await _context.SaveChangesAsync() > 0;
+        try
+        {
+            var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.ProductID == product.ProductID);
+
+            if (existingProduct == null)
+                return false;
+
+            var categoryExists = await _context.Categories.AnyAsync(c => c.CategoryID == product.CategoryID);
+
+            if (!categoryExists)
+                throw new Exception("The selected category no longer exists.");
+
+            existingProduct.Name = product.Name;
+            existingProduct.Description = product.Description;
+            existingProduct.Price = product.Price;
+            existingProduct.CategoryID = product.CategoryID;
+            existingProduct.ImageData = product.ImageData;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 
     public async Task<bool> DeleteProductAsync(Product product)

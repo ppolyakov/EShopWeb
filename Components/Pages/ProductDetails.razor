@@ -49,6 +49,9 @@
 
 @code {
     [Parameter] public int productId { get; set; }
+
+    [SupplyParameterFromQuery]
+    [Parameter] public int categoryId { get; set; }
     private Product? product;
     private string notificationMessage = string.Empty;
     private bool isNotificationVisible = false;
@@ -66,7 +69,7 @@
 
     private void NavigateBack()
     {
-        NavigationManager.NavigateTo("/products");
+        NavigationManager.NavigateTo($"/products?categoryId={categoryId}");
     }
 
     private async Task AddToCart()

@@ -4,25 +4,25 @@
 
 <EditForm Model="@Product" OnValidSubmit="HandleSubmit" FormName="ProductForm" class="needs-validation">
     <div class="mb-3 row">
-        <label for="productName" class="col-sm-3 col-form-label">Name:</label>
+        <label for="productName" class="col-sm-3 col-form-label">Name</label>
         <div class="col-sm-9">
             <InputText id="productName" class="form-control" @bind-Value="Product.Name" />
         </div>
     </div>
     <div class="mb-3 row">
-        <label for="productDescription" class="col-sm-3 col-form-label">Description:</label>
+        <label for="productDescription" class="col-sm-3 col-form-label">Description</label>
         <div class="col-sm-9">
             <InputText id="productDescription" class="form-control" @bind-Value="Product.Description" />
         </div>
     </div>
     <div class="mb-3 row">
-        <label for="productPrice" class="col-sm-3 col-form-label">Price:</label>
+        <label for="productPrice" class="col-sm-3 col-form-label">Price</label>
         <div class="col-sm-9">
             <InputNumber id="productPrice" class="form-control" @bind-Value="Product.Price" />
         </div>
     </div>
     <div class="mb-3 row">
-        <label for="productCategory" class="col-sm-3 col-form-label">Category:</label>
+        <label for="productCategory" class="col-sm-3 col-form-label">Category</label>
         <div class="col-sm-9">
             <InputSelect id="productCategory" class="form-control" @bind-Value="Product.CategoryID">
                 <option value="">Select a category</option>
@@ -34,7 +34,7 @@
         </div>
     </div>
     <div class="mb-3 row">
-        <label for="productImage" class="col-sm-3 col-form-label">Image:</label>
+        <label for="productImage" class="col-sm-3 col-form-label">Image</label>
         <div class="col-sm-9">
             @if (Product.ImageData != null && Product.ImageData.Length > 0)
             {

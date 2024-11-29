@@ -18,12 +18,17 @@
     else
     {
         <div class="btn-group mb-4" role="group">
+            <Button Color="@(selectedCategoryId == 0 ? ButtonColor.Primary : ButtonColor.Light)"
+                    @onclick="(() => LoadProductsByCategory(0))">
+                All Products
+            </Button>
+
             @foreach (var category in categories)
             {
-                <button class="btn btn-outline-primary @(selectedCategoryId == category.CategoryID ? "active" : "")"
+                <Button Color="@(selectedCategoryId == category.CategoryID ? ButtonColor.Primary : ButtonColor.Light)"
                         @onclick="(() => LoadProductsByCategory(category.CategoryID))">
                     @category.CategoryName
-                </button>
+                </Button>
             }
         </div>
     }
@@ -43,14 +48,18 @@
             {
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm">
-                        <img src="data:image/png;base64,@Convert.ToBase64String(product.ImageData)" class="card-img-top" alt="@product.Name">
+                        <img src="data:image/png;base64,@Convert.ToBase64String(product.ImageData)" 
+                        class="card-img-top" 
+                        alt="@product.Name"
+                        style="cursor: pointer;"
+                        @onclick="(() => NavigateToDetails(product.ProductID))">
                         <div class="card-body">
                             <h5 class="card-title">@product.Name</h5>
                             <p class="card-text">@product.Description</p>
                             <p><strong>Price:</strong> @product.Price.ToString("C", new System.Globalization.CultureInfo("cs-CZ"))</p>
                             <div class="d-flex justify-content-between">
-                                <button class="btn btn-primary" @onclick="(() => NavigateToDetails(product.ProductID))">View</button>
-                                <button class="btn btn-danger" @onclick="(() => ShowDeleteConfirmation(product))">Delete</button>
+                                <Button Color="ButtonColor.Danger" @onclick="(() => ShowDeleteConfirmation(product))">Delete</Button>
+                                <Button Color="ButtonColor.Primary" @onclick="(() => NavigateToDetails(product.ProductID))">View</Button>
                             </div>
                         </div>
                     </div>
@@ -79,24 +88,41 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
         categories = await ProductService.GetCategoriesAsync();
 
-        if (categories != null && categories.Any())
+        if (query["categoryId"] != null && int.TryParse(query["categoryId"], out var categoryId))
         {
-            selectedCategoryId = categories.First().CategoryID;
-            await LoadProductsByCategory(selectedCategoryId);
+            selectedCategoryId = categoryId;
         }
+        else
+        {
+            selectedCategoryId = 0;
+        }
+
+        await LoadProductsByCategory(selectedCategoryId);
     }
+
 
     private async Task LoadProductsByCategory(int categoryId)
     {
         selectedCategoryId = categoryId;
-        products = await ProductService.GetProductsByCategoryAsync(categoryId);
+
+        if (categoryId == 0)
+        {
+            products = await ProductService.GetAllProductsAsync();
+        }
+        else
+        {
+            products = await ProductService.GetProductsByCategoryAsync(categoryId);
+        }
     }
 
     private void NavigateToDetails(int productId)
     {
-        NavigationManager.NavigateTo($"/product-details/{productId}");
+        NavigationManager.NavigateTo($"/product-details/{productId}?categoryId={selectedCategoryId}");
     }
 
     private async void ShowDeleteConfirmation(Product product)
