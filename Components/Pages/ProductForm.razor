@@ -36,6 +36,10 @@
     <div class="mb-3 row">
         <label for="productImage" class="col-sm-3 col-form-label">Image:</label>
         <div class="col-sm-9">
+            @if (Product.ImageData != null && Product.ImageData.Length > 0)
+            {
+                <img src="data:image/png;base64,@Convert.ToBase64String(Product.ImageData)" alt="Current Image" class="img-thumbnail mb-2" style="max-height: 200px;" />
+            }
             <InputFile id="productImage" class="form-control" OnChange="HandleFileUpload" />
         </div>
     </div>
@@ -80,12 +84,13 @@
         await OnSave.InvokeAsync(Product);
     }
 
-    private async Task Clear(){
+    private async Task Clear()
+    {
         await OnClear.InvokeAsync(Product);
     }
-    
-    private async Task Delete(Product product){
+
+    private async Task Delete(Product product)
+    {
         await OnDelete.InvokeAsync(product);
     }
-
 }

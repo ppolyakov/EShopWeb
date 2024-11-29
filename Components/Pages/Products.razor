@@ -7,57 +7,67 @@
 @inject IProductService ProductService
 @inject NavigationManager NavigationManager
 
-@rendermode InteractiveServer
+<div class="container">
+    <h1 class="text-center my-4">Our Products</h1>
 
-<h1>Our Products</h1>
+    @if (categories == null)
+    {
+        <div class="alert alert-info">Loading categories...</div>
+    }
+    else
+    {
+        <div class="btn-group mb-4" role="group">
+            @foreach (var category in categories)
+            {
+                <button class="btn btn-outline-primary @(selectedCategoryId == category.CategoryID ? "active" : "")"
+                        @onclick="(() => LoadProductsByCategory(category.CategoryID))">
+                    @category.CategoryName
+                </button>
+            }
+        </div>
+    }
 
-@if (categories == null)
-{
-    <p>Loading categories...</p>
-}
-else
-{
-    <div class="category-filter">
-        @foreach (var category in categories)
-        {
-            <button @onclick="(() => LoadProductsByCategory(category.CategoryID))"
-            class="category-button @(selectedCategoryId == category.CategoryID ? "selected" : "")">
-                @category.CategoryName
-            </button>
-        }
-    </div>
-}
+    @if (products == null)
+    {
+        <div class="alert alert-info">Loading products...</div>
+    }
+    else if (!products.Any())
+    {
+        <div class="alert alert-warning">No products found for the selected category.</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var product in products)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <img src="data:image/png;base64,@Convert.ToBase64String(product.ImageData)" class="card-img-top" alt="@product.Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@product.Name</h5>
+                            <p class="card-text">@product.Description</p>
+                            <p><strong>Price:</strong> @product.Price.ToString("C", new System.Globalization.CultureInfo("cs-CZ"))</p>
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-primary" @onclick="(() => NavigateToDetails(product.ProductID))">View</button>
+                                <button class="btn btn-danger" @onclick="(() => ShowDeleteConfirmation(product))">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 
-@if (products == null)
-{
-    <p>Loading products...</p>
-}
-else if (!products.Any())
-{
-    <p>No products found for the selected category.</p>
-}
-else
-{
-    <div class="product-list">
-        @foreach (var product in products)
-        {
-            <div class="product-item">
-                <ProductItem Product="product" />
-                <button @onclick="(() => ShowDeleteConfirmation(product))" class="delete-button">Delete</button>
-            </div>
-        }
-    </div>
-}
-
-<Modal @ref="modal" Title="Confirm Deletion">
-    <BodyTemplate>
-        <p>Are you sure you want to delete this product?</p>
-    </BodyTemplate>
-    <FooterTemplate>
-        <Button Color="ButtonColor.Primary" @onclick="ConfirmDelete" class="confirm-button">Yes</Button>
-        <Button Color="ButtonColor.Secondary" @onclick="CancelDelete" class="cancel-button">No</Button>
-    </FooterTemplate>
-</Modal>
+    <Modal @ref="modal" Title="Confirm Deletion">
+        <BodyTemplate>
+            <p>Are you sure you want to delete this product?</p>
+        </BodyTemplate>
+        <FooterTemplate>
+            <Button Color="ButtonColor.Primary" @onclick="ConfirmDelete">Yes</Button>
+            <Button Color="ButtonColor.Secondary" @onclick="CancelDelete">No</Button>
+        </FooterTemplate>
+    </Modal>
+</div>
 
 @code {
     private Modal modal = default!;
@@ -81,6 +91,11 @@ else
     {
         selectedCategoryId = categoryId;
         products = await ProductService.GetProductsByCategoryAsync(categoryId);
+    }
+
+    private void NavigateToDetails(int productId)
+    {
+        NavigationManager.NavigateTo($"/product-details/{productId}");
     }
 
     private async void ShowDeleteConfirmation(Product product)

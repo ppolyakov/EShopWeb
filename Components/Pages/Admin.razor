@@ -154,11 +154,12 @@
         {
             await ProductService.AddProductAsync(product, product.ImageData!);
             ShowNotification("Product added successfully.");
+            ClearFormProduct();
         }
 
         Products = await ProductService.GetAllProductsAsync();
         FilteredProducts = Products;
-        ClearFormProduct();
+        
     }
 
     private void SelectProduct(ChangeEventArgs e)
