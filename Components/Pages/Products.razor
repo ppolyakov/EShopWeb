@@ -3,9 +3,11 @@
 @using BlazorBootstrap
 @using EShopWeb.Data.Models
 @using EShopWeb.Services.ProductService
+@using EShopWeb.Services.UserService
 @rendermode InteractiveServer
 
 @inject IProductService ProductService
+@inject IUserService UserService
 @inject NavigationManager NavigationManager
 
 <div class="container">
@@ -127,6 +129,12 @@
 
     private async void ShowDeleteConfirmation(Product product)
     {
+        var user = await UserService.GetCurrentUserAsync();
+        if (user?.RoleID != (int)RolesEnum.Admin)
+        {
+            return;
+        }
+
         productToDelete = product;
         await modal.ShowAsync();
     }

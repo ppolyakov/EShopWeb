@@ -1,0 +1,48 @@
+﻿@page "/login"
+@using EShopWeb.Data.Models
+@using EShopWeb.Services.UserService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+    <h2 class="text-center">Login</h2>
+
+    <EditForm Model="@user" OnValidSubmit="HandleLogin" FormName="Login">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <InputText id="username" class="form-control" @bind-Value="username" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" class="form-control" @bind-Value="password" Type="password" />
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="button" class="btn btn-secondary" @onclick="LoginAsGuest">Login as Guest</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private User user = new User();
+    private string username = string.Empty;
+    private string password = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        var user = await UserService.AuthenticateUserAsync(username, password);
+        if (user != null)
+        {
+            await UserService.SetCurrentUserAsync(user);
+            NavigationManager.NavigateTo("/products");
+        }
+    }
+
+    private async Task LoginAsGuest()
+    {
+        await UserService.SetCurrentUserAsync(new User { RoleID = (int)RolesEnum.Customer, Username = "Guest" });
+        NavigationManager.NavigateTo("/products");
+    }
+}

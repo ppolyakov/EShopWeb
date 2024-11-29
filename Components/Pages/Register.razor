@@ -1,0 +1,52 @@
+﻿@page "/register"
+@using EShopWeb.Data.Models
+@using EShopWeb.Services.UserService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+    <h2 class="text-center">Register</h2>
+
+    <EditForm Model="@user" OnValidSubmit="HandleRegister" FormName="Register">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <InputText id="username" class="form-control" @bind-Value="user.Username" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" class="form-control" @bind-Value="password"/>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="user.Email" />
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Register</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private User user = new User();
+    private string password = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        try
+        {
+            user.PasswordHash = password;
+            user.RoleID = (int)RolesEnum.Customer;
+            var result = await UserService.RegisterUserAsync(user);
+            if (result)
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
