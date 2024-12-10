@@ -4,6 +4,7 @@
     <h2 class="text-center">Register</h2>
 
     <EditForm Model="@user" OnValidSubmit="HandleRegister" FormName="Register">
+        <DataAnnotationsValidator />
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <InputText id="username" class="form-control" @bind-Value="user.Username" />

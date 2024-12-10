@@ -4,6 +4,7 @@
     <h2 class="text-center">Login</h2>
 
     <EditForm Model="@user" OnValidSubmit="HandleLogin" FormName="Login">
+        <DataAnnotationsValidator />
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <InputText id="username" class="form-control" @bind-Value="username" />
