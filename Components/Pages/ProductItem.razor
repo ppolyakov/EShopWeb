@@ -1,10 +1,4 @@
-﻿@using BlazorBootstrap
-@using EShopWeb.Data.Models
-@using EShopWeb.Services.CartService
-@inject ICartService CartService
-@rendermode InteractiveServer
-
-<div class="product-item">
+﻿<div class="product-item">
     @if (Product.ImageData != null)
     {
         <img src="data:image/jpeg;base64,@Convert.ToBase64String(Product.ImageData)" alt="@Product.Name" class="product-image" />
@@ -19,15 +13,3 @@
     <p>Category: @Product.Category.CategoryName</p>
     <Button Color="ButtonColor.Primary" Type="ButtonType.Button" @onclick="AddToCart">Add to Cart</Button>
 </div>
-
-@code {
-    [Parameter]
-    public Product Product { get; set; } = new Product();
-
-    private async Task AddToCart()
-    {
-        if (Product is null) return;
-
-        await CartService.AddToCartAsync(Product, 1);
-    }
-}

@@ -1,10 +1,4 @@
 ﻿@page "/register"
-@using EShopWeb.Data.Models
-@using EShopWeb.Services.UserService
-@inject IUserService UserService
-@inject NavigationManager NavigationManager
-
-@rendermode InteractiveServer
 
 <div class="container mt-5">
     <h2 class="text-center">Register</h2>
@@ -27,26 +21,3 @@
         </div>
     </EditForm>
 </div>
-
-@code {
-    private User user = new User();
-    private string password = string.Empty;
-
-    private async Task HandleRegister()
-    {
-        try
-        {
-            user.PasswordHash = password;
-            user.RoleID = (int)RolesEnum.Customer;
-            var result = await UserService.RegisterUserAsync(user);
-            if (result)
-            {
-                NavigationManager.NavigateTo("/login");
-            }
-        }
-        catch (InvalidOperationException ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-}

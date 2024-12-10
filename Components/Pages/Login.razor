@@ -1,10 +1,4 @@
 ﻿@page "/login"
-@using EShopWeb.Data.Models
-@using EShopWeb.Services.UserService
-@inject IUserService UserService
-@inject NavigationManager NavigationManager
-
-@rendermode InteractiveServer
 
 <div class="container mt-5">
     <h2 class="text-center">Login</h2>
@@ -24,25 +18,3 @@
         </div>
     </EditForm>
 </div>
-
-@code {
-    private User user = new User();
-    private string username = string.Empty;
-    private string password = string.Empty;
-
-    private async Task HandleLogin()
-    {
-        var user = await UserService.AuthenticateUserAsync(username, password);
-        if (user != null)
-        {
-            await UserService.SetCurrentUserAsync(user);
-            NavigationManager.NavigateTo("/products");
-        }
-    }
-
-    private async Task LoginAsGuest()
-    {
-        await UserService.SetCurrentUserAsync(new User { RoleID = (int)RolesEnum.Customer, Username = "Guest" });
-        NavigationManager.NavigateTo("/products");
-    }
-}

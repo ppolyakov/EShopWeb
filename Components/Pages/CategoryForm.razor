@@ -1,8 +1,4 @@
-﻿@using BlazorBootstrap
-@using EShopWeb.Data.Models
-@inject NavigationManager NavigationManager
-
-<EditForm Model="@Category" OnValidSubmit="HandleSubmit" FormName="CategoryForm">
+﻿<EditForm Model="@Category" OnValidSubmit="HandleSubmit" FormName="CategoryForm">
     <div class="mb-3 row">
         <label for="categoryName" class="col-sm-3 col-form-label">Name</label>
         <InputText id="categoryName" class="form-control" @bind-Value="Category.CategoryName" />
@@ -16,26 +12,3 @@
         </div>
     </div>
 </EditForm>
-
-@code {
-    [Parameter] public Category Category { get; set; } = new Category();
-    [Parameter] public bool IsEditing { get; set; }
-    [Parameter] public EventCallback<Category> OnSave { get; set; }
-    [Parameter] public EventCallback<Category> OnClear { get; set; }
-    [Parameter] public EventCallback<Category> OnDelete { get; set; }
-
-    private async Task HandleSubmit()
-    {
-        await OnSave.InvokeAsync(Category);
-    }
-
-    private async Task Clear()
-    {
-        await OnClear.InvokeAsync(Category);
-    }
-
-    private async Task Delete(Category category)
-    {
-        await OnDelete.InvokeAsync(category);
-    }
-}

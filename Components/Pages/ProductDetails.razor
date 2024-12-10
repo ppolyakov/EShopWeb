@@ -1,14 +1,5 @@
 ﻿@page "/product-details/{productId:int}"
 
-@using EShopWeb.Data.Models
-@using EShopWeb.Services.CartService
-@using EShopWeb.Services.ProductService
-@rendermode InteractiveServer
-
-@inject IProductService ProductService
-@inject ICartService CartService
-@inject NavigationManager NavigationManager
-
 <Notification IsVisible="isNotificationVisible" Message="@notificationMessage" OnClose="ClearNotification" />
 
 <div class="container my-4">
@@ -43,48 +34,4 @@
             </div>
         </div>
     }
-
-    
 </div>
-
-@code {
-    [Parameter] public int productId { get; set; }
-
-    [SupplyParameterFromQuery]
-    [Parameter] public int categoryId { get; set; }
-    private Product? product;
-    private string notificationMessage = string.Empty;
-    private bool isNotificationVisible = false;
-    private int quantity = 1;
-
-    protected override async Task OnInitializedAsync()
-    {
-        product = await ProductService.GetProductByIdAsync(productId);
-
-        if (product == null)
-        {
-            NavigationManager.NavigateTo("/products");
-        }
-    }
-
-    private void NavigateBack()
-    {
-        NavigationManager.NavigateTo($"/products?categoryId={categoryId}");
-    }
-
-    private async Task AddToCart()
-    {
-        if (product != null && quantity > 0)
-        {
-            await CartService.AddToCartAsync(product, quantity);
-            notificationMessage = $"{quantity} x {product.Name} has been added to your cart.";
-            isNotificationVisible = true;
-        }
-    }
-
-    private void ClearNotification()
-    {
-        isNotificationVisible = false;
-        notificationMessage = string.Empty;
-    }
-}
