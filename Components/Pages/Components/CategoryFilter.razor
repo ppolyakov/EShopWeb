@@ -1,0 +1,21 @@
+﻿@if (Categories == null)
+{
+    <div class="alert alert-info">Loading categories...</div>
+}
+else
+{
+    <div class="btn-group mb-4" role="group">
+        <Button Color="@(SelectedCategoryId == 0 ? ButtonColor.Primary : ButtonColor.Light)"
+                @onclick="(() => ChangeCategory(0))">
+            All Products
+        </Button>
+
+        @foreach (var category in Categories)
+        {
+            <Button Color="@(SelectedCategoryId == category.CategoryID ? ButtonColor.Primary : ButtonColor.Light)"
+                    @onclick="(() => ChangeCategory(category.CategoryID))">
+                @category.CategoryName
+            </Button>
+        }
+    </div>
+}

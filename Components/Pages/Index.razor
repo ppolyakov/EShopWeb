@@ -1,7 +1,25 @@
 ﻿@page "/"
 
-<h3>Index</h3>
+<HeaderBar OnSearch="HandleSearch" />
+<Banner />
+<div class="container my-4">
+    <CategoryFilter Categories="categories"
+                    SelectedCategoryId="selectedCategoryId"
+                    OnCategoryChanged="LoadProductsByCategory" />
 
-@code {
-
-}
+    <ProductList Products="products"
+                 CanDeleteProducts="canDeleteProducts"
+                 OnDeleteRequested="ShowDeleteConfirmation"
+                 OnViewProduct="NavigateToDetails" />
+    
+    <Modal @ref="modal" Title="Confirm Deletion">
+        <BodyTemplate>
+            <p>Are you sure you want to delete this product?</p>
+        </BodyTemplate>
+        <FooterTemplate>
+            <Button Color="ButtonColor.Primary" @onclick="ConfirmDelete">Yes</Button>
+            <Button Color="ButtonColor.Secondary" @onclick="CancelDelete">No</Button>
+        </FooterTemplate>
+    </Modal>
+</div>
+<FooterBar />

@@ -1,0 +1,29 @@
+﻿<div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="images/logo.png" alt="Logo" style="max-height:40px;" />
+            </a>
+
+            <EditForm class="d-flex me-3">
+                <InputText class="form-control me-2" placeholder="Search products..." aria-label="Search" @bind-value="SearchTerm" />
+                <Button Color="ButtonColor.Secondary" Type="ButtonType.Button" @onclick="PerformSearch">
+                    <i class="bi bi-search"></i>
+                </Button>
+            </EditForm>
+
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                <li class="nav-item me-3">
+                    <a class="nav-link" href="/login">
+                        <i class="bi bi-person"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">
+                        <i class="bi bi-person-plus"></i> Register
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>

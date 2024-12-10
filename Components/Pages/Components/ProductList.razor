@@ -1,0 +1,36 @@
+﻿@if (Products == null)
+{
+    <div class="alert alert-info">Loading products...</div>
+}
+else if (!Products.Any())
+{
+    <div class="alert alert-warning">No products found for the selected category.</div>
+}
+else
+{
+    <div class="row">
+        @foreach (var product in Products)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    @if (product.ImageData != null && product.ImageData.Length > 0)
+                    {
+                        <img src="data:image/png;base64,@Convert.ToBase64String(product.ImageData)" class="card-img-top" alt="@product.Name" style="cursor: pointer;" @onclick="(() => ViewProductDetails(product.ProductID))">
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text">@product.Description</p>
+                        <p><strong>Price:</strong> @product.Price.ToString("C", new System.Globalization.CultureInfo("cs-CZ"))</p>
+                        <div class="d-flex justify-content-between">
+                            @if (CanDeleteProducts)
+                            {
+                                <Button Color="ButtonColor.Danger" @onclick="(() => ConfirmDelete(product))">Delete</Button>
+                            }
+                            <Button Color="ButtonColor.Primary" @onclick="(() => ViewProductDetails(product.ProductID))">View</Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

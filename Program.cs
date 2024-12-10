@@ -1,8 +1,10 @@
 using EShopWeb.Components;
 using EShopWeb.Data;
+using EShopWeb.Services.AuthenticationProvider;
 using EShopWeb.Services.CartService;
 using EShopWeb.Services.ProductService;
 using EShopWeb.Services.UserService;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddBlazorBootstrap();
+
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 var app = builder.Build();
 

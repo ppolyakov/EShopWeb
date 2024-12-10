@@ -3,55 +3,59 @@ using EShopWeb.Data.Models;
 using EShopWeb.Services.ProductService;
 using EShopWeb.Services.UserService;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace EShopWeb.Components.Pages;
 
-public partial class Products
+public partial class Index
 {
-    private Modal modal = default!;
     private List<Product>? products;
     private List<Category>? categories;
     private int selectedCategoryId;
     private Product? productToDelete;
+    private bool canDeleteProducts;
+    private Modal modal = default!;
+    private string searchTerm = string.Empty;
 
-    [Inject] 
+    [Inject]
     private IProductService ProductService { get; set; } = default!;
-    [Inject] 
+    [Inject]
     private IUserService UserService { get; set; } = default!;
     [Inject]
     private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject]
+    private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        canDeleteProducts = user.Identity.IsAuthenticated && user.IsInRole("Admin");
 
         categories = await ProductService.GetCategoriesAsync();
-
-        if (query["categoryId"] != null && int.TryParse(query["categoryId"], out var categoryId))
-        {
-            selectedCategoryId = categoryId;
-        }
-        else
-        {
-            selectedCategoryId = 0;
-        }
-
+        selectedCategoryId = 0;
         await LoadProductsByCategory(selectedCategoryId);
     }
-
 
     private async Task LoadProductsByCategory(int categoryId)
     {
         selectedCategoryId = categoryId;
 
-        if (categoryId == 0)
+        if (string.IsNullOrWhiteSpace(searchTerm))
         {
-            products = await ProductService.GetAllProductsAsync();
+            if (categoryId == 0)
+            {
+                products = await ProductService.GetAllProductsAsync();
+            }
+            else
+            {
+                products = await ProductService.GetProductsByCategoryAsync(categoryId);
+            }
         }
         else
         {
-            products = await ProductService.GetProductsByCategoryAsync(categoryId);
+            products = await ProductService.SearchProductsAsync(searchTerm, categoryId);
         }
     }
 
@@ -60,13 +64,9 @@ public partial class Products
         NavigationManager.NavigateTo($"/product-details/{productId}?categoryId={selectedCategoryId}");
     }
 
-    private async void ShowDeleteConfirmation(Product product)
+    private async Task ShowDeleteConfirmation(Product product)
     {
-        var user = await UserService.GetCurrentUserAsync();
-        if (user?.RoleID != (int)RolesEnum.Admin)
-        {
-            return;
-        }
+        if (!canDeleteProducts) return;
 
         productToDelete = product;
         await modal.ShowAsync();
@@ -84,9 +84,15 @@ public partial class Products
         await modal.HideAsync();
     }
 
-    private async void CancelDelete()
+    private async Task CancelDelete()
     {
         productToDelete = null;
         await modal.HideAsync();
+    }
+
+    private async Task HandleSearch(string term)
+    {
+        searchTerm = term;
+        await LoadProductsByCategory(selectedCategoryId);
     }
 }

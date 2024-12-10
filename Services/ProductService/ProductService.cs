@@ -82,6 +82,23 @@ public class ProductService : IProductService
         return false;
     }
 
+    public async Task<List<Product>> SearchProductsAsync(string searchTerm, int categoryId)
+    {
+        IQueryable<Product> query = _context.Products.Include(p => p.Category);
+
+        if (categoryId > 0)
+        {
+            query = query.Where(p => p.CategoryID == categoryId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm));
+        }
+
+        return await query.ToListAsync();
+    }
+
     public async Task<List<Category>> GetCategoriesAsync()
     {
         return await _context.Categories.ToListAsync();

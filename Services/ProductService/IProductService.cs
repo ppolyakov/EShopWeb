@@ -10,6 +10,7 @@ public interface IProductService
     Task<bool> AddProductAsync(Product product, byte[] imageData);
     Task<bool> UpdateProductAsync(Product product);
     Task<bool> DeleteProductAsync(Product product);
+    Task<List<Product>> SearchProductsAsync(string searchTerm, int categoryId);
 
     Task<List<Category>> GetCategoriesAsync();
     Task<bool> AddCategoryAsync(Category category);
