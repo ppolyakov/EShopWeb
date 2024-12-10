@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace EShopWeb.Components.Pages;
+namespace EShopWeb.Components.Pages.Components;
 
 public partial class Notification
 {
